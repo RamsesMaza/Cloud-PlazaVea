@@ -4,7 +4,6 @@ import pool from '../db';
 // Obtener todas las solicitudes
 export const getRequests = async (req: Request, res: Response) => {
   try {
-    // CORRECCIÓN: Cambiado de 'createdAt' a 'created_at' para coincidir con la base de datos
     const [rows] = await pool.query('SELECT * FROM requests ORDER BY created_at DESC');
     res.json(rows);
   } catch (error) {
