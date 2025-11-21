@@ -68,3 +68,4 @@ jobs:
           slot-name: 'Production'
           package: . # El paquete es el artifact descargado
           startup-command: 'npm start' # Fuerza a usar el script de arranque 'node dist/app.js'
+
