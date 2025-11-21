@@ -56,9 +56,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.__clientidsecretname__ }}
-          tenant-id: ${{ secrets.__tenantidsecretname__ }}
-          subscription-id: ${{ secrets.__subscriptionidsecretname__ }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_... }} # Usar secretos de Azure
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_... }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_... }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -67,4 +67,4 @@ jobs:
           app-name: 'plazavea-api-cloud'
           slot-name: 'Production'
           package: . # El paquete es el artifact descargado
-          startup-command: 'npm start'
+          startup-command: 'npm start' # Fuerza a usar el script de arranque 'node dist/app.js'
