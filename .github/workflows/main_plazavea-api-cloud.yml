@@ -56,7 +56,8 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_... }} # Usar secretos de Azure
+          # Usar los secretos generados por Azure (no editar los nombres)
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_... }} 
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_... }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_... }}
 
@@ -68,4 +69,3 @@ jobs:
           slot-name: 'Production'
           package: . # El paquete es el artifact descargado
           startup-command: 'npm start' # Fuerza a usar el script de arranque 'node dist/app.js'
-
