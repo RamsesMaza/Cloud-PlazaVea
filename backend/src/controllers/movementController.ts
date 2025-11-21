@@ -4,8 +4,8 @@ import pool from '../db';
 // Obtener todos los movimientos
 export const getMovements = async (req: Request, res: Response) => {
   try {
-    // CORRECCIÓN CLAVE: Usamos 'created_at' (snake_case)
-    const [rows] = await pool.query('SELECT * FROM movements ORDER BY created_at DESC');
+    // CORRECCIÓN: Usamos 'created_at' para coincidir con la base de datos
+    const [rows] = await pool.query('SELECT * FROM movements ORDER BY created_at DESC'); 
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener movimientos:', error);
@@ -17,7 +17,6 @@ export const getMovements = async (req: Request, res: Response) => {
 export const addMovement = async (req: Request, res: Response) => {
   const { productId, type, quantity, reason, reference, userId, cost } = req.body;
   try {
-    // Asumo que el campo de tiempo se maneja automáticamente por MySQL
     const [result]: any = await pool.query(
       'INSERT INTO movements (productId, type, quantity, reason, reference, userId, cost) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [productId, type, quantity, reason, reference, userId, cost]
