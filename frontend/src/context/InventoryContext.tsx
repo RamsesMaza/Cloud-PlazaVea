@@ -38,15 +38,16 @@ export const useInventory = () => {
 };
 
 export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  
-  // URL base (localhost o Azure)
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+  
+  // 🔥 Debe ser SIN fallback para que Azure lo reemplace
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [movements, setMovements] = useState<Movement[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [movements, setMovements] = useState<Movement[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+
 
 
   // --- FETCH FUNCTIONS (EN PERSISTENCIA) ---
