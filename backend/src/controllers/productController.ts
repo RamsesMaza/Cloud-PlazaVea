@@ -1,11 +1,12 @@
-// src/controllers/productController.ts
-
 import { Request, Response } from 'express';
 import pool from '../db';
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM products');
+    // Nota: Si usas SELECT * FROM products, la base de datos devolverá snake_case. 
+    // El frontend (React) debe estar preparado para recibir 'min_stock_level', no 'minStock'. 
+    // Si el frontend espera camelCase, necesitaríamos usar ALIAS en esta consulta.
+    const [rows] = await pool.query('SELECT * FROM products'); 
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener productos:', error);
@@ -16,11 +17,9 @@ export const getProducts = async (req: Request, res: Response) => {
 export const addProduct = async (req: Request, res: Response) => {
   const { name, sku, category, description, price, stock, minStock, maxStock, supplierId, unit, location } = req.body;
   try {
-    // CORRECCIÓN CLAVE: 
-    // Se eliminan 'createdAt' y 'updatedAt' de la lista de columnas y los valores 'NOW()'
-    // La lista de 11 columnas coincide con los 11 marcadores de posición '?'
+    // CORRECCIÓN CLAVE: Usar nombres de columna EXACTOS (snake_case)
     const [result] = await pool.query(
-      'INSERT INTO products (name, sku, category, description, price, stock, minStock, maxStock, supplierId, unit, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO products (name, sku, category, description, price, stock, min_stock_level, max_stock_level, supplier_id, unit_of_measure, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [name, sku, category, description, price, stock, minStock, maxStock, supplierId, unit, location]
     );
     
@@ -40,6 +39,11 @@ export const addProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
   const { id } = req.params;
   const updates = req.body;
+    
+    // NOTA: Para que esto funcione sin fallar en las columnas snake_case, 
+    // necesitas que el frontend envíe los datos con snake_case (ej: {min_stock_level: 5})
+    // O hacer un mapeo aquí de camelCase a snake_case antes de la actualización.
+
   try {
     await pool.query(
       'UPDATE products SET ? , updated_at = NOW() WHERE id = ?',

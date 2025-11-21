@@ -106,7 +106,9 @@ const LoginForm: React.FC = () => {
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <h3 className="text-sm font-medium text-gray-900 mb-2">Usuarios de prueba:</h3>
             <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>workingadmin</strong> / password (Administrador)</p>
+              <p><strong>admin</strong> / password (Administrador)</p>
+              <p><strong>manager</strong> / password (Administrador)</p>
+              <p><strong>employee</strong> / password (Administrador)</p>  
             </div>
           </div>
         </form>
