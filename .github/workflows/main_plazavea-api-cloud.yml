@@ -49,9 +49,13 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_38C872D18733AB12FA4E20552A637E1D }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8F9535BFB9B5DCE4F9201D7AC7EE1100 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_199E9F213B80DA50E0430100007F68E2655 }}
+          creds: |
+            {
+              "clientId": "${{ secrets.AZUREAPPSERVICE_CLIENTID_38C872D18733AB12FA4E20552A637E1D }}",
+              "tenantId": "${{ secrets.AZUREAPPSERVICE_TENANTID_8F9535BFB9B5DCE4F9201D7AC7EE1100 }}",
+              "subscriptionId": "${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_199E9F213B80DA50E0430100007F68E2655 }}"
+            }
+
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
@@ -59,3 +63,4 @@ jobs:
           app-name: "plazavea-api-cloud"
           package: .
           startup-command: "npm start"
+
