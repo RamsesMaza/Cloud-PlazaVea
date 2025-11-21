@@ -5,8 +5,10 @@
   "main": "dist/app.js",
   "scripts": {
     "dev": "nodemon --watch src --exec ts-node src/app.ts",
-    "build": "tsc",
-    "start": "node dist/app.js"
+    "build": "tsc && npm run copy-static",
+    "start": "node dist/app.js",
+    
+    "copy-static": "(if not exist dist\\certs mkdir dist\\certs) && copy src\\certs\\azure_mysql_ca.pem dist\\certs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
