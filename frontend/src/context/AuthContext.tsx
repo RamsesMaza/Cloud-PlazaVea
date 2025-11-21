@@ -3,6 +3,7 @@ import { User } from '../types';
 import { useInventory } from '../context/InventoryContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
+console.log("API URL usada por frontend:", API_URL);
 
 interface AuthContextType {
   user: User | null;
