@@ -7,16 +7,17 @@ console.log("API URL usada por frontend:", API_URL);
 
 export default function Dashboard() {
 
+  console.log("DASHBOARD RENDER");
+
   useEffect(() => {
     console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
   }, []);
 
   return (
-    <div>
-      {/* tu dashboard */}
-    </div>
+    <div>dashboard</div>
   );
 }
+
 
 interface AuthContextType {
   user: User | null;
