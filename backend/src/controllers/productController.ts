@@ -1,34 +1,25 @@
-// Controlador para gestión de productos
+// src/controllers/productController.ts
+
 import { Request, Response } from 'express';
 import pool from '../db';
-import { v4 as uuidv4 } from 'uuid'; // <-- 1. Importar UUID para generar IDs
+import { v4 as uuidv4 } from 'uuid'; // <-- ¡CRÍTICO!
 
-export const getProducts = async (req: Request, res: Response) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM products');
-    res.json(rows);
-  } catch (error) {
-    console.error('Error al obtener productos:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
-};
+// ... (omitimos getProducts para enfocarnos en addProduct)
 
 export const addProduct = async (req: Request, res: Response) => {
   const { name, sku, category, description, price, stock, minStock, maxStock, supplierId, unit, location } = req.body;
   
-  // 2. Generar el ID único antes de la inserción
+  // 1. GENERAR UUID
   const id = uuidv4(); 
 
   try {
-    // CORRECCIÓN CLAVE: 
-    // a) Se incluye 'id' en la consulta.
-    // b) Se usan nombres de columna EXACTOS de MySQL (snake_case).
+    // 2. USAR EL UUID EN EL INSERT Y NOMBRES DE COLUMNA CORRECTOS (snake_case)
     const [result] = await pool.query(
       'INSERT INTO products (id, name, sku, category, description, price, stock, min_stock_level, max_stock_level, supplier_id, unit_of_measure, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [id, name, sku, category, description, price, stock, minStock, maxStock, supplierId, unit, location]
     );
     
-    // 3. Se usa el ID generado para obtener el producto insertado.
+    // 3. Usar el ID generado para obtener el producto insertado.
     const [rows] = await pool.query('SELECT * FROM products WHERE id = ?', [id]);
     if (Array.isArray(rows) && rows.length > 0) {
       res.status(201).json(rows[0]);
