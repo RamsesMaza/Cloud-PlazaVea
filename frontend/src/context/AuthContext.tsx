@@ -5,6 +5,19 @@ import { useInventory } from '../context/InventoryContext';
 const API_URL = import.meta.env.VITE_API_URL;
 console.log("API URL usada por frontend:", API_URL);
 
+export default function Dashboard() {
+
+  useEffect(() => {
+    console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+  }, []);
+
+  return (
+    <div>
+      {/* tu dashboard */}
+    </div>
+  );
+}
+
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<boolean>;
