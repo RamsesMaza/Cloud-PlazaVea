@@ -12,8 +12,8 @@ interface InventoryContextType {
   updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
 
-  addMovement: (movement: Omit<Movement, 'id' | 'createdAt'>) => Promise<void>; // <-- CAMBIADO a async
-  createRequest: (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>; // <-- CAMBIADO a async
+  addMovement: (movement: Omit<Movement, 'id' | 'createdAt'>) => Promise<void>;
+  createRequest: (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateRequest: (id: string, updates: Partial<Request>) => void;
 
   addSupplier: (supplier: Omit<Supplier, 'id' | 'createdAt'>) => Promise<void>;
@@ -38,16 +38,15 @@ export const useInventory = () => {
 };
 
 export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  
-  // 🔥 Debe ser SIN fallback para que Azure lo reemplace
-  const API_URL = import.meta.env.VITE_API_URL;
+  
+  // 🔥 Debe ser SIN fallback para que Azure lo reemplace
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [movements, setMovements] = useState<Movement[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-
+  const [products, setProducts] = useState<Product[]>([]);
+  const [movements, setMovements] = useState<Movement[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
 
 
   // --- FETCH FUNCTIONS (EN PERSISTENCIA) ---
@@ -66,7 +65,19 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       const response = await fetch(`${API_URL}/api/products`);
       if (!response.ok) throw new Error('Error al obtener productos');
-      setProducts(await response.json());
+      
+      // 🛑 CORRECCIÓN APLICADA AQUÍ: Mapear para asegurar que los números sean números
+      const rawProducts: any[] = await response.json(); 
+
+      const safeProducts: Product[] = rawProducts.map(product => ({
+        ...product,
+        // Convertir price a float, usando 0 si es null/undefined/string no válido
+        price: parseFloat(product.price) || 0,
+        // Convertir stock a entero (si es necesario)
+        stock: parseInt(product.stock) || 0, 
+      }));
+      
+      setProducts(safeProducts);
     } catch (error) {
       console.error('Error al obtener productos:', error);
     }
@@ -98,8 +109,8 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const refreshAllData = useCallback(async () => {
       await fetchProducts();
       await fetchSuppliers();
-      await fetchMovements(); // <-- Agregado
-      await fetchRequests(); // <-- Agregado
+      await fetchMovements();
+      await fetchRequests();
   }, [fetchProducts, fetchSuppliers, fetchMovements, fetchRequests]); 
 
   // --- EFECTO DE CARGA INICIAL ---
@@ -153,7 +164,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 
   // --- MOVEMENTS (CORREGIDO para PERSISTENCIA) ---
-  const addMovement = async (movement: Omit<Movement, 'id' | 'createdAt'>) => { // <-- CAMBIADO a async
+  const addMovement = async (movement: Omit<Movement, 'id' | 'createdAt'>) => {
     try {
       // 1. Registrar el movimiento en el Backend (Persistencia)
       const response = await fetch(`${API_URL}/api/movements`, {
@@ -162,7 +173,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         body: JSON.stringify(movement),
       });
       if (!response.ok) throw new Error('Error al registrar movimiento');
-      
+      
       const newMovement = await response.json();
       setMovements(prev => [...prev, newMovement]); // Actualiza estado
 
@@ -175,7 +186,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         
         await updateProduct(movement.productId, { stock: newStock }); // Llama a la función persistente
       }
-      
+      
     } catch (error) {
       console.error('Error al agregar movimiento:', error);
     }
@@ -183,7 +194,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 
   // --- REQUESTS / SOLICITUDES (CORREGIDO para PERSISTENCIA) ---
-  const createRequest = async (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => { // <-- CAMBIADO a async
+  const createRequest = async (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       // 1. Registrar la solicitud en el Backend (Persistencia)
       const response = await fetch(`${API_URL}/api/requests`, {
@@ -195,7 +206,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       const newRequest = await response.json();
       setRequests(prev => [...prev, newRequest]); // Actualiza estado
-      
+      
     } catch (error) {
       console.error('Error al crear solicitud:', error);
     }
@@ -220,9 +231,6 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // --- OTRAS FUNCIONES ---
-  // Las funciones updateRequest, updateSupplier, etc. que no son persistentes 
-  // se mantienen con la lógica local por ahora.
-
   const updateRequest = (id: string, updates: Partial<Request>) => {
     setRequests(prev =>
       prev.map(r => (r.id === id ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r))
