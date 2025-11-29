@@ -45,7 +45,7 @@ export const createRequest = async (req: Request, res: Response) => {
     console.error('Error al crear solicitud (Excepción DB):', error); 
     res.status(500).json({ 
       error: 'Error interno del servidor', 
-      detail: (error as Error).message // Esto es útil para ver errores de clave foránea o NOT NULL
+      detail: (error as Error).message
     });
   }
 };
