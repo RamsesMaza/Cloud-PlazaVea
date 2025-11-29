@@ -32,7 +32,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
     if (!user) return;
 
@@ -51,7 +51,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -68,6 +68,12 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
     'Temporada alta',
     'Producto agotado'
   ];
+
+  // Función de ayuda para obtener un precio numérico seguro
+  const getSafePrice = (price: any): number => {
+    const parsedPrice = parseFloat(price);
+    return isNaN(parsedPrice) ? 0 : parsedPrice;
+  };
 
   return (
     <div className="p-6">
@@ -123,10 +129,11 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
                     <h3 className="font-medium text-gray-900">{selectedProduct.name}</h3>
                     <p className="text-sm text-gray-600">Stock disponible: {selectedProduct.stock} {selectedProduct.unit}</p>
                     <p className="text-sm text-gray-600">Ubicación: {selectedProduct.location}</p>
-                    <p className="text-sm text-gray-600">Precio: S/ {selectedProduct.price.toFixed(2)}</p>
+                    {/* ❌ CORRECCIÓN 1: Precio individual */}
+                    <p className="text-sm text-gray-600">Precio: S/ {getSafePrice(selectedProduct.price).toFixed(2)}</p>
                   </div>
                 </div>
-                
+
                 {selectedProduct.stock <= selectedProduct.minStock && (
                   <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                     <p className="text-orange-800 text-sm font-medium">
@@ -181,7 +188,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
                 ))}
                 <option value="other">Otro (especificar abajo)</option>
               </select>
-              
+
               {formData.reason === 'other' && (
                 <textarea
                   name="reason"
@@ -194,7 +201,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
                   placeholder="Especifica el motivo de tu solicitud..."
                 />
               )}
-              
+
               {errors.reason && <p className="text-red-500 text-sm mt-1">{errors.reason}</p>}
             </div>
 
@@ -212,8 +219,9 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
                   <p className="text-blue-800">
                     <span className="font-medium">Motivo:</span> {formData.reason}
                   </p>
+                  {/* ❌ CORRECCIÓN 2: Valor estimado */}
                   <p className="text-blue-800">
-                    <span className="font-medium">Valor estimado:</span> S/ {(selectedProduct.price * formData.quantity).toFixed(2)}
+                    <span className="font-medium">Valor estimado:</span> S/ {(getSafePrice(selectedProduct.price) * formData.quantity).toFixed(2)}
                   </p>
                   <p className="text-blue-800">
                     <span className="font-medium">Solicitado por:</span> {user?.name}

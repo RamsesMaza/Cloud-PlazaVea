@@ -9,8 +9,6 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // ⚠️ Esto SOLO funciona en DESARROLLO
-      // En producción, el frontend usará VITE_API_URL automáticamente
       '/api': {
         target: 'http://localhost:4000',
         changeOrigin: true,
