@@ -66,14 +66,12 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const response = await fetch(`${API_URL}/api/products`);
       if (!response.ok) throw new Error('Error al obtener productos');
       
-      // 🛑 CORRECCIÓN APLICADA AQUÍ: Mapear para asegurar que los números sean números
+      // CORRECCIÓN 1: Asegurar que los números sean números
       const rawProducts: any[] = await response.json(); 
 
       const safeProducts: Product[] = rawProducts.map(product => ({
         ...product,
-        // Convertir price a float, usando 0 si es null/undefined/string no válido
         price: parseFloat(product.price) || 0,
-        // Convertir stock a entero (si es necesario)
         stock: parseInt(product.stock) || 0, 
       }));
       
@@ -193,7 +191,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
 
-  // --- REQUESTS / SOLICITUDES (CORREGIDO para PERSISTENCIA) ---
+  // --- REQUESTS / SOLICITUDES (CORREGIDO para PERSISTENCIA y Diagnóstico de Error) ---
   const createRequest = async (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       // 1. Registrar la solicitud en el Backend (Persistencia)
@@ -202,13 +200,19 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),
       });
-      if (!response.ok) throw new Error('Error al crear solicitud');
+      
+      if (!response.ok) {
+        // Intentar obtener un mensaje de error detallado del servidor
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(`Falló la creación. Estado: ${response.status}. Mensaje: ${errorData.message || 'Error desconocido'}`);
+      }
 
       const newRequest = await response.json();
       setRequests(prev => [...prev, newRequest]); // Actualiza estado
       
     } catch (error) {
-      console.error('Error al crear solicitud:', error);
+      // Mostrar el mensaje detallado o el error genérico
+      console.error('Error al crear solicitud:', error instanceof Error ? error.message : error);
     }
   };
 
