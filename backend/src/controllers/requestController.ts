@@ -18,12 +18,11 @@ export const getRequests = async (req: Request, res: Response) => {
 export const createRequest = async (req: Request, res: Response) => {
   const { productId, requestedBy, quantity, reason, status } = req.body;
   
-  // 🛑 CORRECCIÓN CLAVE: Saneamiento de datos
-  // 1. Convertir quantity a número. Si falla la conversión (ej: si es una cadena vacía), será NaN.
-  const safeQuantity = Number(quantity);
+  // 1. Generar el ID
+  const id = uuidv4(); 
 
-  // 2. Generar el ID
-  const id = uuidv4();
+  // 2. Saneamiento de datos: Asegurar que quantity es un número
+  const safeQuantity = Number(quantity);
   
   try {
     // 3. Validación de la cantidad
@@ -32,7 +31,7 @@ export const createRequest = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'La cantidad solicitada debe ser un número válido mayor que cero.' });
     }
 
-    // 4. Ejecutar la consulta con el valor numérico seguro (safeQuantity)
+    // 4. CORRECCIÓN CLAVE: Ejecutar la consulta incluyendo el 'id' generado
     const [result]: any = await pool.query(
       'INSERT INTO requests (id, productId, requestedBy, quantity, reason, status) VALUES (?, ?, ?, ?, ?, ?)',
       [id, productId, requestedBy, safeQuantity, reason, status]
@@ -46,7 +45,7 @@ export const createRequest = async (req: Request, res: Response) => {
     console.error('Error al crear solicitud (Excepción DB):', error); 
     res.status(500).json({ 
       error: 'Error interno del servidor', 
-      detail: (error as Error).message // Esto te mostrará el error real de MySQL/MariaDB
+      detail: (error as Error).message // Esto es útil para ver errores de clave foránea o NOT NULL
     });
   }
 };
