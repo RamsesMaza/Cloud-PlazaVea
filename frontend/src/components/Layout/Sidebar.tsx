@@ -6,11 +6,9 @@ import {
   FileText, 
   Users, 
   BarChart3, 
-  AlertTriangle,
   Settings,
   Truck,
   Search,
-  UserCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 

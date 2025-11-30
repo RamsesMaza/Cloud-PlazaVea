@@ -3,25 +3,20 @@ import {
   Package, 
   TrendingUp, 
   TrendingDown, 
-  AlertTriangle, 
   DollarSign,
-  Users,
-  BarChart3,
   Calendar
 } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 
 const Dashboard: React.FC = () => {
-  const { products, movements, alerts, requests } = useInventory();
+  const { products, movements, requests } = useInventory();
 
   const totalProducts = products.length;
   const lowStockProducts = products.filter(p => p.stock <= p.minStock).length;
-  const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
   const totalValue = products.reduce((sum, p) => sum + (p.stock * p.price), 0);
   
   const recentMovements = movements.slice(-5);
   const pendingRequests = requests.filter(r => r.status === 'pending').length;
-  const activeAlerts = alerts.filter(a => !a.isRead).length;
 
   const entryMovements = movements.filter(m => m.type === 'entry').length;
   const exitMovements = movements.filter(m => m.type === 'exit').length;
@@ -37,7 +32,7 @@ const Dashboard: React.FC = () => {
     {
       name: 'Stock Bajo',
       value: lowStockProducts,
-      icon: AlertTriangle,
+      icon: Package,
       color: 'bg-red-500',
       bgColor: 'bg-red-50'
     },
@@ -71,13 +66,6 @@ const Dashboard: React.FC = () => {
       icon: TrendingDown,
       color: 'text-red-600',
       bgColor: 'bg-red-100'
-    },
-    {
-      name: 'Alertas Activas',
-      value: activeAlerts,
-      icon: AlertTriangle,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100'
     }
   ];
 
@@ -120,7 +108,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Movement Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {movementStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -140,76 +128,39 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Movements */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Movimientos Recientes</h3>
-            <BarChart3 size={20} className="text-gray-400" />
-          </div>
-          <div className="space-y-3">
-            {recentMovements.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No hay movimientos recientes</p>
-            ) : (
-              recentMovements.map((movement) => {
-                const product = products.find(p => p.id === movement.productId);
-                return (
-                  <div key={movement.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        movement.type === 'entry' ? 'bg-green-500' : 'bg-red-500'
-                      }`} />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{product?.name}</p>
-                        <p className="text-xs text-gray-500">{movement.reason}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-medium ${
-                        movement.type === 'entry' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {movement.type === 'entry' ? '+' : '-'}{movement.quantity}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(movement.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Low Stock Alerts */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Productos con Stock Bajo</h3>
-            <AlertTriangle size={20} className="text-orange-500" />
-          </div>
-          <div className="space-y-3">
-            {products.filter(p => p.stock <= p.minStock).length === 0 ? (
-              <p className="text-gray-500 text-center py-4">Todos los productos tienen stock suficiente</p>
-            ) : (
-              products
-                .filter(p => p.stock <= p.minStock)
-                .slice(0, 5)
-                .map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Movimientos Recientes</h3>
+        <div className="space-y-3">
+          {recentMovements.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">No hay movimientos recientes</p>
+          ) : (
+            recentMovements.map((movement) => {
+              const product = products.find(p => p.id === movement.productId);
+              return (
+                <div key={movement.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      movement.type === 'entry' ? 'bg-green-500' : 'bg-red-500'
+                    }`} />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                      <p className="text-xs text-gray-500">SKU: {product.sku}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-orange-600">
-                        {product.stock} / {product.minStock}
-                      </p>
-                      <p className="text-xs text-orange-500">Stock bajo</p>
+                      <p className="text-sm font-medium text-gray-900">{product?.name}</p>
+                      <p className="text-xs text-gray-500">{movement.reason}</p>
                     </div>
                   </div>
-                ))
-            )}
-          </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-medium ${
+                      movement.type === 'entry' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {movement.type === 'entry' ? '+' : '-'}{movement.quantity}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(movement.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
