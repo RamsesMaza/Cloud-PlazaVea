@@ -57,45 +57,41 @@ const AppContent: React.FC = () => {
   if (viewMode === 'app') {
     const renderView = () => {
       switch (activeView) {
-        case 'dashboard':
-          return <Dashboard />;
-        case 'products':
-          return <ProductList />;
-        case 'movements':
-          return <MovementList />;
-        case 'requests':
-          return <RequestList />;
-        case 'suppliers':
-          return <SupplierList />;
-        case 'reports':
-          return <ReportList />;
-        case 'search':
-          return <SearchView />;
-        case 'users':
-          return <UserList />;
-        case 'settings':
-          return <Settings />;
-        default:
-          return <Dashboard />;
+        case 'dashboard': return <Dashboard />;
+        case 'products': return <ProductList />;
+        case 'movements': return <MovementList />;
+        case 'requests': return <RequestList />;
+        case 'suppliers': return <SupplierList />;
+        case 'reports': return <ReportList />;
+        case 'search': return <SearchView />;
+        case 'users': return <UserList />;
+        case 'settings': return <Settings />;
+        default: return <Dashboard />;
       }
     };
 
     return (
       <div className="min-h-screen bg-gray-50 flex">
+
+        {/* 🔥 Sidebar ahora recibe onToggle */}
         <Sidebar
           activeView={activeView}
           onViewChange={setActiveView}
           isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         />
+
+        {/* Contenido Principal */}
         <div className="flex-1 flex flex-col">
           <Header
             onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
             isSidebarOpen={isSidebarOpen}
           />
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto p-4">
             {renderView()}
           </main>
         </div>
+
       </div>
     );
   }
