@@ -13,10 +13,8 @@ import MovementList from './components/Movements/MovementList';
 import RequestList from './components/Requests/RequestList';
 import SupplierList from './components/Suppliers/SupplierList';
 import ReportList from './components/Reports/ReportList';
-import AlertList from './components/Alerts/AlertList';
 import SearchView from './components/Search/SearchView';
 import UserList from './components/Users/UserList';
-import AuditList from './components/Audit/AuditList';
 import Settings from './components/Settings/Settings';
 
 // ==============================
@@ -25,10 +23,6 @@ import Settings from './components/Settings/Settings';
 const AppContent: React.FC = () => {
   const { user, isLoading } = useAuth();
 
-  // Logs para verificar carga
-  console.log("🔥 AppContent cargado — user:", user, "viewMode inicial:", user ? "app" : "landing");
-  console.log("🌐 ENV desde AppContent:", import.meta.env.VITE_API_URL);
-
   const [viewMode, setViewMode] = useState<'landing' | 'login' | 'app'>(
     user ? 'app' : 'landing'
   );
@@ -36,7 +30,6 @@ const AppContent: React.FC = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Forzar modo app si hay usuario
   if (user && viewMode !== 'app') {
     setViewMode('app');
   }
@@ -54,28 +47,14 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // LOG para ver estado del flujo
-  console.log("📌 Estado actual — user:", user, "viewMode:", viewMode);
-
-  // =======================
-  // Vista PÚBLICA
-  // =======================
   if (!user) {
     if (viewMode === 'landing') {
-      console.log("👀 Mostrando LandingPage");
       return <LandingPage onLoginClick={() => setViewMode('login')} />;
     }
-
-    console.log("🔐 Mostrando LoginForm");
     return <LoginForm />;
   }
 
-  // =======================
-  // Vista PRIVADA
-  // =======================
   if (viewMode === 'app') {
-    console.log("🟩 Renderizando vista privada (Dashboard + Sidebar)");
-
     const renderView = () => {
       switch (activeView) {
         case 'dashboard':
@@ -90,14 +69,10 @@ const AppContent: React.FC = () => {
           return <SupplierList />;
         case 'reports':
           return <ReportList />;
-        case 'alerts':
-          return <AlertList />;
         case 'search':
           return <SearchView />;
         case 'users':
           return <UserList />;
-        case 'audit':
-          return <AuditList />;
         case 'settings':
           return <Settings />;
         default:
@@ -132,9 +107,6 @@ const AppContent: React.FC = () => {
 // WRAPPER PRINCIPAL
 // ==============================
 const App: React.FC = () => {
-  console.log("🧩 App.tsx principal cargado");
-  console.log("🌐 ENV desde App.tsx:", import.meta.env.VITE_API_URL);
-
   return (
     <InventoryProvider>
       <AuthProvider>
