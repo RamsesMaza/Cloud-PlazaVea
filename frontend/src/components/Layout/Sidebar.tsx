@@ -30,12 +30,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, isOpen }) =
     { id: 'requests', label: 'Solicitudes', icon: FileText, roles: ['admin', 'manager', 'employee'] },
     { id: 'suppliers', label: 'Proveedores', icon: Truck, roles: ['admin', 'manager'] },
     { id: 'reports', label: 'Reportes', icon: BarChart3, roles: ['admin', 'manager'] },
-    { id: 'alerts', label: 'Alertas', icon: AlertTriangle, roles: ['admin', 'manager', 'employee'] },
     { id: 'search', label: 'Buscar', icon: Search, roles: ['admin', 'manager', 'employee'] },
     { id: 'users', label: 'Usuarios', icon: Users, roles: ['admin'] },
-    { id: 'audit', label: 'Auditoría', icon: UserCheck, roles: ['admin', 'manager'] },
     { id: 'settings', label: 'Configuración', icon: Settings, roles: ['admin'] }
   ];
+
 
   const filteredMenuItems = menuItems.filter(item => 
     user && item.roles.includes(user.role)
