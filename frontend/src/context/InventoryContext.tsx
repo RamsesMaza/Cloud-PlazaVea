@@ -12,6 +12,8 @@ interface InventoryContextType {
   updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
 
+deleteSupplier: (id: string) => Promise<void>;
+
   addMovement: (movement: Omit<Movement, 'id' | 'createdAt'>) => Promise<void>;
   createRequest: (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateRequest: (id: string, updates: Partial<Request>) => void;
@@ -159,6 +161,20 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.error('Error al eliminar producto:', error);
     }
   };
+    const deleteSupplier = async (id: string) => {
+    try {
+        const response = await fetch(`${API_URL}/api/suppliers/${id}`, {
+        method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Error al eliminar proveedor');
+
+        setSuppliers(prev => prev.filter(s => s.id !== id));
+    } catch (error) {
+        console.error('Error al eliminar proveedor:', error);
+    }
+    };
+
 
 
   // --- MOVEMENTS (CORREGIDO para PERSISTENCIA) ---
@@ -299,6 +315,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addProduct,
         updateProduct,
         deleteProduct,
+        deleteSupplier,
         addMovement,
         createRequest,
         updateRequest,
