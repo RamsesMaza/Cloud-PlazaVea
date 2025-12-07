@@ -150,7 +150,6 @@ const UserList: React.FC = () => {
                 <th className="text-left py-3 px-6 font-medium text-gray-900">Rol</th>
                 <th className="text-left py-3 px-6 font-medium text-gray-900">Estado</th>
                 <th className="text-left py-3 px-6 font-medium text-gray-900">Último Acceso</th>
-                <th className="text-left py-3 px-6 font-medium text-gray-900">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

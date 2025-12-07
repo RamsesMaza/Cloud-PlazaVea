@@ -12,7 +12,6 @@ const SupplierList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
-  const canDelete = user?.role === 'admin';
 
   // ✅ Filtrar proveedores
   const filteredSuppliers = searchQuery
@@ -31,36 +30,8 @@ const SupplierList: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleCloseForm = () => {
-    setShowForm(false);
-    setEditingSupplier(null);
-  };
 
-  // ✅ ELIMINAR PROVEEDOR
-  const handleDelete = async (supplierId: string) => {
-    const ok = confirm('¿Seguro que deseas eliminar este proveedor?');
-    if (!ok) return;
 
-    try {
-      await fetch(`http://localhost:3000/api/suppliers/${supplierId}`, {
-        method: 'DELETE',
-      });
-
-      window.location.reload();
-    } catch (error) {
-      console.error(error);
-      alert('No se pudo eliminar el proveedor');
-    }
-  };
-
-  if (showForm) {
-    return (
-      <SupplierForm
-        supplierId={editingSupplier}
-        onClose={handleCloseForm}
-      />
-    );
-  }
 
   return (
     <div className="p-6">

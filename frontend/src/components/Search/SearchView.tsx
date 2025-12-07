@@ -182,7 +182,6 @@ const SearchView: React.FC = () => {
                   <th className="text-left py-3 px-6 font-medium text-gray-900">Precio</th>
                   <th className="text-left py-3 px-6 font-medium text-gray-900">Ubicación</th>
                   <th className="text-left py-3 px-6 font-medium text-gray-900">Estado</th>
-                  <th className="text-left py-3 px-6 font-medium text-gray-900">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -225,18 +224,7 @@ const SearchView: React.FC = () => {
                           {stockStatus.label}
                         </span>
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center space-x-2">
-                          <button className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded">
-                            <Eye size={16} />
-                          </button>
-                          {canEdit && (
-                            <button className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded">
-                              <Edit2 size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                      
                     </tr>
                   );
                 })}
