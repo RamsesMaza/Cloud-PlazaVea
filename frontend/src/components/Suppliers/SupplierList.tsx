@@ -1,33 +1,24 @@
 import React, { useState } from 'react';
-import { Plus, Truck, Edit2, Eye, Phone, Mail, MapPin, Trash2 } from 'lucide-react';
+import { Plus, Truck, Edit2, Eye, Phone, Mail, MapPin } from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
 import { useAuth } from '../../context/AuthContext';
 import SupplierForm from './SupplierForm';
 
 const SupplierList: React.FC = () => {
-  const { suppliers, deleteSupplier } = useInventory();
+  const { suppliers } = useInventory();
   const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
-  const canDelete = user?.role === 'admin';
 
-  // ✅ FILTRO SEGURO
   const filteredSuppliers = searchQuery
-    ? suppliers.filter((supplier) => {
-        const name = supplier.name?.toLowerCase() || '';
-        const contact = supplier.contactPerson?.toLowerCase() || '';
-        const ruc = supplier.ruc || '';
-        const q = searchQuery.toLowerCase();
-
-        return (
-          name.includes(q) ||
-          contact.includes(q) ||
-          ruc.includes(q)
-        );
-      })
+    ? suppliers.filter(supplier =>
+        supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (supplier.contactPerson || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        supplier.ruc.includes(searchQuery)
+      )
     : suppliers;
 
   const activeSuppliers = suppliers.filter(s => s.isActive).length;
@@ -43,13 +34,6 @@ const SupplierList: React.FC = () => {
     setEditingSupplier(null);
   };
 
-  // ✅ ELIMINAR COMO PRODUCTOS
-  const handleDelete = (supplierId: string) => {
-    if (confirm('¿Seguro que deseas eliminar este proveedor?')) {
-      deleteSupplier(supplierId);
-    }
-  };
-
   if (showForm) {
     return (
       <SupplierForm
@@ -61,7 +45,6 @@ const SupplierList: React.FC = () => {
 
   return (
     <div className="p-6">
-      {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
@@ -79,48 +62,94 @@ const SupplierList: React.FC = () => {
         )}
       </div>
 
-      {/* STATS */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <p className="text-sm text-gray-600">Total Proveedores</p>
-          <p className="text-2xl font-bold">{suppliers.length}</p>
+          <div className="flex items-center space-x-4">
+            <div className="bg-blue-100 p-3 rounded-lg">
+              <Truck size={24} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Proveedores</p>
+              <p className="text-2xl font-bold text-gray-900">{suppliers.length}</p>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <p className="text-sm text-gray-600">Activos</p>
-          <p className="text-2xl font-bold">{activeSuppliers}</p>
+          <div className="flex items-center space-x-4">
+            <div className="bg-green-100 p-3 rounded-lg">
+              <Truck size={24} className="text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Activos</p>
+              <p className="text-2xl font-bold text-gray-900">{activeSuppliers}</p>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <p className="text-sm text-gray-600">Inactivos</p>
-          <p className="text-2xl font-bold">{inactiveSuppliers}</p>
+          <div className="flex items-center space-x-4">
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <Truck size={24} className="text-gray-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Inactivos</p>
+              <p className="text-2xl font-bold text-gray-900">{inactiveSuppliers}</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* SEARCH */}
+      {/* Search */}
       <div className="bg-white rounded-xl p-6 mb-6 border border-gray-200 shadow-sm">
         <input
           type="text"
           placeholder="Buscar proveedores..."
-          className="w-full px-4 py-3 border rounded-lg"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      {/* GRID */}
+      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredSuppliers.map((supplier) => (
-          <div key={supplier.id} className="bg-white rounded-xl p-6 border shadow-sm">
+          <div key={supplier.id} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
 
-            <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
-            <p className="text-sm text-gray-500">RUC: {supplier.ruc}</p>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
+                <p className="text-sm text-gray-500">RUC: {supplier.ruc}</p>
+              </div>
 
-            <p className="text-sm mt-2">📞 {supplier.phone}</p>
-            <p className="text-sm">✉️ {supplier.email}</p>
-            <p className="text-sm">📍 {supplier.address}</p>
+              <span className={`px-2 py-1 rounded text-xs ${
+                supplier.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+              }`}>
+                {supplier.isActive ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
+
+            <div className="text-sm text-gray-600 space-y-2">
+              <div className="flex items-center gap-2">
+                <Phone size={16} />
+                {supplier.phone}
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail size={16} />
+                {supplier.email}
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin size={16} />
+                {supplier.address}
+              </div>
+            </div>
 
             <div className="flex gap-2 mt-4">
+              <button className="flex-1 bg-gray-100 px-3 py-2 rounded-lg">
+                <Eye size={16} />
+              </button>
+
               {canEdit && (
                 <button
                   onClick={() => handleEdit(supplier.id)}
@@ -129,17 +158,7 @@ const SupplierList: React.FC = () => {
                   <Edit2 size={16} />
                 </button>
               )}
-
-              {canDelete && (
-                <button
-                  onClick={() => handleDelete(supplier.id)}
-                  className="flex-1 bg-red-100 text-red-700 px-3 py-2 rounded-lg"
-                >
-                  <Trash2 size={16} />
-                </button>
-              )}
             </div>
-
           </div>
         ))}
       </div>

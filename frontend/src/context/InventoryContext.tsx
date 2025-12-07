@@ -152,15 +152,24 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // ✅ DELETE SUPPLIER CORRECTO
-  const deleteSupplier = async (id: string) => {
+    const deleteSupplier = async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/suppliers/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error();
-      setSuppliers(s => s.filter(x => x.id !== id));
-    } catch (e) {
-      console.error('Error delete supplier', e);
+        const response = await fetch(`${API_URL}/api/suppliers/${id}`, {
+        method: 'DELETE'
+        });
+
+        if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+        }
+
+        setSuppliers(prev => prev.filter(s => s.id !== id));
+    } catch (error) {
+        console.error('Error al eliminar proveedor:', error);
+        alert('No se pudo eliminar el proveedor');
     }
-  };
+    };
+
 
   // ================== MOVEMENTS ==================
 
