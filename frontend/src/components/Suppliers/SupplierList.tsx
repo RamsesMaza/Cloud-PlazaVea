@@ -186,10 +186,7 @@ const SupplierList: React.FC = () => {
 
             {/* BOTONES */}
             <div className="flex items-center space-x-2 mt-4 pt-4 border-t border-gray-100">
-              <button className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-1">
-                <Eye size={16} />
-                <span className="text-sm">Ver</span>
-              </button>
+              
 
               {canEdit && (
                 <button
@@ -201,15 +198,6 @@ const SupplierList: React.FC = () => {
                 </button>
               )}
 
-              {canDelete && (
-                <button
-                  onClick={() => handleDelete(supplier.id)}
-                  className="flex-1 bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center space-x-1"
-                >
-                  <Trash2 size={16} />
-                  <span className="text-sm">Eliminar</span>
-                </button>
-              )}
             </div>
 
           </div>
