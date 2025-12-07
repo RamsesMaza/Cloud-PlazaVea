@@ -1,5 +1,3 @@
-// src/controllers/productController.ts
-
 import { Request, Response } from "express";
 import pool from "../db";
 import { v4 as uuidv4 } from "uuid";
@@ -41,14 +39,14 @@ export const addProduct = async (req: Request, res: Response) => {
 
     const id = uuidv4();
 
-    // Mapeo automático
+    // Preferir IDs recibidos del frontend
     const finalCategory = categoryId ?? category;
     const finalLocation = locationId ?? location;
 
     try {
         await pool.query(
             `INSERT INTO products 
-            (id, name, sku, category, description, price, stock, min_stock_level, max_stock_level, supplier_id, unit_of_measure, location)
+            (id, name, sku, category, description, price, stock, minStock, maxStock, supplierId, unit, location)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 id,
@@ -66,11 +64,9 @@ export const addProduct = async (req: Request, res: Response) => {
             ]
         );
 
-        const [rows] = await pool.query("SELECT * FROM products WHERE id = ?", [
-            id,
-        ]);
-
+        const [rows] = await pool.query("SELECT * FROM products WHERE id = ?", [id]);
         res.status(201).json(Array.isArray(rows) ? rows[0] : null);
+
     } catch (error: any) {
         console.error("❌ Error al agregar producto:", error);
         res.status(500).json({
@@ -90,31 +86,30 @@ export const updateProduct = async (req: Request, res: Response) => {
     const mappedUpdates: { [key: string]: any } = {};
 
     for (const key in updates) {
-        if (Object.prototype.hasOwnProperty.call(updates, key)) {
-            let dbColumn = key;
+        if (!Object.prototype.hasOwnProperty.call(updates, key)) continue;
 
-            if (key === "minStock") dbColumn = "min_stock_level";
-            else if (key === "maxStock") dbColumn = "max_stock_level";
-            else if (key === "supplierId") dbColumn = "supplier_id";
-            else if (key === "unit") dbColumn = "unit_of_measure";
-            else if (key === "categoryId") dbColumn = "category";
-            else if (key === "locationId") dbColumn = "location";
+        let dbColumn = key;
 
-            mappedUpdates[dbColumn] = updates[key];
-        }
+        // 🔁 Mapeo de campos al nombre REAL de MySQL
+        if (key === "minStock") dbColumn = "minStock";
+        else if (key === "maxStock") dbColumn = "maxStock";
+        else if (key === "supplierId") dbColumn = "supplierId";
+        else if (key === "unit") dbColumn = "unit";
+        else if (key === "categoryId") dbColumn = "category";
+        else if (key === "locationId") dbColumn = "location";
+
+        mappedUpdates[dbColumn] = updates[key];
     }
 
     try {
         await pool.query(
-            "UPDATE products SET ?, updated_at = NOW() WHERE id = ?",
+            "UPDATE products SET ?, updatedAt = NOW() WHERE id = ?",
             [mappedUpdates, id]
         );
 
-        const [rows] = await pool.query("SELECT * FROM products WHERE id = ?", [
-            id,
-        ]);
-
+        const [rows] = await pool.query("SELECT * FROM products WHERE id = ?", [id]);
         res.json(Array.isArray(rows) ? rows[0] : null);
+
     } catch (error) {
         console.error("❌ Error al actualizar producto:", error);
         res.status(500).json({ error: "Error interno del servidor" });
