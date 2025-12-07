@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
-import { Search, Package, Filter, Eye, Edit2 } from 'lucide-react';
+import { Search, Package, Filter} from 'lucide-react';
 import { useInventory } from '../../context/InventoryContext';
-import { useAuth } from '../../context/AuthContext';
 
 const SearchView: React.FC = () => {
   const { products, searchProducts } = useInventory();
-  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(products);
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStockStatus, setFilterStockStatus] = useState('all');
   const [sortBy, setSortBy] = useState('name');
 
-  const canEdit = user?.role === 'admin' || user?.role === 'manager';
 
   // Get unique categories
   const categories = [...new Set(products.map(p => p.category))];

@@ -42,16 +42,6 @@ const SupplierList: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
           <p className="text-gray-600">Gestiona la información de proveedores</p>
         </div>
-
-        {canEdit && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
-          >
-            <Plus size={20} />
-            <span>Nuevo Proveedor</span>
-          </button>
-        )}
       </div>
 
       {/* STATS */}
