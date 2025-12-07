@@ -42,7 +42,7 @@ const SupplierList: React.FC = () => {
     if (!ok) return;
 
     try {
-      await fetch(`http://localhost:3000/api/suppliers/${supplierId}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/suppliers/${supplierId}`, {
         method: 'DELETE',
       });
 
