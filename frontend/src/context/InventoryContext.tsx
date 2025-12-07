@@ -2,333 +2,305 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Product, Movement, Request, Supplier, Alert } from '../types';
 
 interface InventoryContextType {
-  products: Product[];
-  movements: Movement[];
-  requests: Request[];
-  suppliers: Supplier[];
-  alerts: Alert[];
+  products: Product[];
+  movements: Movement[];
+  requests: Request[];
+  suppliers: Supplier[];
+  alerts: Alert[];
 
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
-  deleteProduct: (id: string) => Promise<void>;
+  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
 
-deleteSupplier: (id: string) => Promise<void>;
+  deleteSupplier: (id: string) => Promise<void>;
 
-  addMovement: (movement: Omit<Movement, 'id' | 'createdAt'>) => Promise<void>;
-  createRequest: (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateRequest: (id: string, updates: Partial<Request>) => void;
+  addMovement: (movement: Omit<Movement, 'id' | 'createdAt'>) => Promise<void>;
+  createRequest: (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateRequest: (id: string, updates: Partial<Request>) => void;
 
-  addSupplier: (supplier: Omit<Supplier, 'id' | 'createdAt'>) => Promise<void>;
-  updateSupplier: (id: string, updates: Partial<Supplier>) => void;
+  addSupplier: (supplier: Omit<Supplier, 'id' | 'createdAt'>) => Promise<void>;
+  updateSupplier: (id: string, updates: Partial<Supplier>) => void;
 
-  markAlertAsRead: (id: string) => void;
+  markAlertAsRead: (id: string) => void;
 
-  searchProducts: (query: string) => Product[];
-  generateReport: (startDate: string, endDate: string) => Movement[];
-  exportToExcel: () => void;
-  refreshAllData: () => Promise<void>; 
+  searchProducts: (query?: string) => Product[];
+  generateReport: (startDate: string, endDate: string) => Movement[];
+  exportToExcel: () => void;
+  refreshAllData: () => Promise<void>;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
 export const useInventory = () => {
-  const context = useContext(InventoryContext);
-  if (!context) {
-    throw new Error('useInventory must be used within an InventoryProvider');
-  }
-  return context;
+  const context = useContext(InventoryContext);
+  if (!context) throw new Error('useInventory must be used within an InventoryProvider');
+  return context;
 };
 
 export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  
-  // 🔥 Debe ser SIN fallback para que Azure lo reemplace
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [movements, setMovements] = useState<Movement[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [movements, setMovements] = useState<Movement[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
 
+  // ================= FETCH =================
 
-  // --- FETCH FUNCTIONS (EN PERSISTENCIA) ---
-
-  const fetchSuppliers = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/suppliers`);
-      if (!response.ok) throw new Error('Error al obtener proveedores');
-      setSuppliers(await response.json());
-    } catch (error) {
-      console.error('Error al obtener proveedores:', error);
-    }
-  }, [API_URL]);
-
-  const fetchProducts = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/products`);
-      if (!response.ok) throw new Error('Error al obtener productos');
-      
-      // CORRECCIÓN 1: Asegurar que los números sean números
-      const rawProducts: any[] = await response.json(); 
-
-      const safeProducts: Product[] = rawProducts.map(product => ({
-        ...product,
-        price: parseFloat(product.price) || 0,
-        stock: parseInt(product.stock) || 0, 
-      }));
-      
-      setProducts(safeProducts);
-    } catch (error) {
-      console.error('Error al obtener productos:', error);
-    }
-  }, [API_URL]);
-
-  // <-- NUEVAS FUNCIONES DE FETCH PARA MOVIMIENTOS Y SOLICITUDES -->
-  const fetchMovements = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/movements`);
-      if (!response.ok) throw new Error('Error al obtener movimientos');
-      setMovements(await response.json());
-    } catch (error) {
-      console.error('Error al obtener movimientos:', error);
-    }
-  }, [API_URL]);
-
-  const fetchRequests = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/requests`);
-      if (!response.ok) throw new Error('Error al obtener solicitudes');
-      setRequests(await response.json());
-    } catch (error) {
-      console.error('Error al obtener solicitudes:', error);
-    }
-  }, [API_URL]);
-  // <-- FIN DE NUEVAS FUNCIONES DE FETCH -->
-
-  // --- FUNCIÓN UNIFICADA DE RECARGA (refreshAllData) ---
-  const refreshAllData = useCallback(async () => {
-      await fetchProducts();
-      await fetchSuppliers();
-      await fetchMovements();
-      await fetchRequests();
-  }, [fetchProducts, fetchSuppliers, fetchMovements, fetchRequests]); 
-
-  // --- EFECTO DE CARGA INICIAL ---
-  useEffect(() => {
-    refreshAllData();
-  }, [refreshAllData]); 
-
-
-  // --- CRUD PRODUCTS (PERSISTENTE) ---
-  const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const response = await fetch(`${API_URL}/api/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product),
-      });
-      if (!response.ok) throw new Error('Error al agregar producto');
-      const newProduct = await response.json();
-      setProducts(prev => [...prev, newProduct]);
-    } catch (error) {
-      console.error('Error al agregar producto:', error);
-    }
-  };
-
-  const updateProduct = async (id: string, updates: Partial<Product>) => {
-    try {
-      const response = await fetch(`${API_URL}/api/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-      if (!response.ok) throw new Error('Error al actualizar producto');
-
-      const updated = await response.json(); 
-      setProducts(prev => prev.map(p => (p.id === id ? updated : p)));
-      
-    } catch (error) {
-      console.error('Error al actualizar producto:', error);
-    }
-  };
-
-  const deleteProduct = async (id: string) => {
-    try {
-      const response = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Error al eliminar producto');
-      setProducts(prev => prev.filter(p => p.id !== id));
-    } catch (error) {
-      console.error('Error al eliminar producto:', error);
-    }
-  };
-    const deleteSupplier = async (id: string) => {
+  const fetchSuppliers = useCallback(async () => {
     try {
-        const response = await fetch(`${API_URL}/api/suppliers/${id}`, {
-        method: 'DELETE'
-        });
-
-        if (!response.ok) throw new Error('Error al eliminar proveedor');
-
-        setSuppliers(prev => prev.filter(s => s.id !== id));
-    } catch (error) {
-        console.error('Error al eliminar proveedor:', error);
+      const res = await fetch(`${API_URL}/api/suppliers`);
+      if (!res.ok) throw new Error();
+      setSuppliers(await res.json());
+    } catch (e) {
+      console.error('Error fetch suppliers', e);
     }
-    };
+  }, [API_URL]);
 
+  const fetchProducts = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/products`);
+      if (!res.ok) throw new Error();
+      const raw: any[] = await res.json();
 
+      const safe: Product[] = raw.map(p => ({
+        ...p,
+        price: Number(p.price) || 0,
+        stock: Number(p.stock) || 0
+      }));
 
-  // --- MOVEMENTS (CORREGIDO para PERSISTENCIA) ---
-  const addMovement = async (movement: Omit<Movement, 'id' | 'createdAt'>) => {
-    try {
-      // 1. Registrar el movimiento en el Backend (Persistencia)
-      const response = await fetch(`${API_URL}/api/movements`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(movement),
-      });
-      if (!response.ok) throw new Error('Error al registrar movimiento');
-      
-      const newMovement = await response.json();
-      setMovements(prev => [...prev, newMovement]); // Actualiza estado
+      setProducts(safe);
+    } catch (e) {
+      console.error('Error fetch products', e);
+    }
+  }, [API_URL]);
 
-      // 2. Actualizar el stock en la base de datos (CRÍTICO)
-      const productToUpdate = products.find(p => p.id === movement.productId);
-      if (productToUpdate) {
-        const newStock = movement.type === 'entry'
-          ? productToUpdate.stock + movement.quantity
-          : productToUpdate.stock - movement.quantity;
-        
-        await updateProduct(movement.productId, { stock: newStock }); // Llama a la función persistente
-      }
-      
-    } catch (error) {
-      console.error('Error al agregar movimiento:', error);
-    }
-  };
+  const fetchMovements = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/movements`);
+      if (!res.ok) throw new Error();
+      setMovements(await res.json());
+    } catch (e) {
+      console.error('Error fetch movements', e);
+    }
+  }, [API_URL]);
 
+  const fetchRequests = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/requests`);
+      if (!res.ok) throw new Error();
+      setRequests(await res.json());
+    } catch (e) {
+      console.error('Error fetch requests', e);
+    }
+  }, [API_URL]);
 
-  // --- REQUESTS / SOLICITUDES (CORREGIDO para PERSISTENCIA y Diagnóstico de Error) ---
-  const createRequest = async (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      // 1. Registrar la solicitud en el Backend (Persistencia)
-      const response = await fetch(`${API_URL}/api/requests`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request),
-      });
-      
-      if (!response.ok) {
-        // Intentar obtener un mensaje de error detallado del servidor
-        const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error(`Falló la creación. Estado: ${response.status}. Mensaje: ${errorData.message || 'Error desconocido'}`);
-      }
+  const refreshAllData = useCallback(async () => {
+    await Promise.all([
+      fetchProducts(),
+      fetchSuppliers(),
+      fetchMovements(),
+      fetchRequests()
+    ]);
+  }, [fetchProducts, fetchSuppliers, fetchMovements, fetchRequests]);
 
-      const newRequest = await response.json();
-      setRequests(prev => [...prev, newRequest]); // Actualiza estado
-      
-    } catch (error) {
-      // Mostrar el mensaje detallado o el error genérico
-      console.error('Error al crear solicitud:', error instanceof Error ? error.message : error);
-    }
-  };
+  useEffect(() => {
+    refreshAllData();
+  }, [refreshAllData]);
 
-  // --- SUPPLIERS (PERSISTENTE) ---
-  const addSupplier = async (supplier: Omit<Supplier, 'id' | 'createdAt'>) => {
-    try {
-      const response = await fetch(`${API_URL}/api/suppliers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(supplier),
-      });
-      
-      if (!response.ok) throw new Error('Error al agregar proveedor');
+  // ================== PRODUCTS ==================
 
-      const newSupplier = await response.json(); 
-      setSuppliers(prev => [...prev, newSupplier]); 
-    } catch (error) {
-      console.error('Error al agregar proveedor:', error);
-    }
-  };
+  const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch(`${API_URL}/api/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product)
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setProducts(p => [...p, data]);
+    } catch (e) {
+      console.error('Error add product', e);
+    }
+  };
 
-  // --- OTRAS FUNCIONES ---
-  const updateRequest = (id: string, updates: Partial<Request>) => {
-    setRequests(prev =>
-      prev.map(r => (r.id === id ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r))
-    );
-  };
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
+    try {
+      const res = await fetch(`${API_URL}/api/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setProducts(p => p.map(x => x.id === id ? data : x));
+    } catch (e) {
+      console.error('Error update product', e);
+    }
+  };
 
-  const updateSupplier = (id: string, updates: Partial<Supplier>) => {
-    setSuppliers(prev => prev.map(s => (s.id === id ? { ...s, ...updates } : s)));
-  };
+  const deleteProduct = async (id: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      setProducts(p => p.filter(x => x.id !== id));
+    } catch (e) {
+      console.error('Error delete product', e);
+    }
+  };
 
-  const markAlertAsRead = (id: string) => {
-    setAlerts(prev => prev.map(a => (a.id === id ? { ...a, isRead: true } : a)));
-  };
+  // ✅ DELETE SUPPLIER CORRECTO
+  const deleteSupplier = async (id: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/suppliers/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      setSuppliers(s => s.filter(x => x.id !== id));
+    } catch (e) {
+      console.error('Error delete supplier', e);
+    }
+  };
 
-  // --- UTILS ---
+  // ================== MOVEMENTS ==================
 
-  const searchProducts = (query: string) => {
-    if (!query.trim()) return products;
-    const q = query.toLowerCase();
-    return products.filter(
-      p =>
-        p.name.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-    );
-  };
+  const addMovement = async (movement: Omit<Movement, 'id' | 'createdAt'>) => {
+    try {
+      const res = await fetch(`${API_URL}/api/movements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(movement)
+      });
 
-  const generateReport = (startDate: string, endDate: string) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    return movements.filter(m => {
-      const date = new Date(m.createdAt);
-      return date >= start && date <= end;
-    });
-  };
+      if (!res.ok) throw new Error();
+      const newMov = await res.json();
+      setMovements(m => [...m, newMov]);
 
-  const exportToExcel = () => {
-    const csv = [
-      ['SKU', 'Nombre', 'Categoría', 'Stock Actual', 'Precio'],
-      ...products.map(p => [p.sku, p.name, p.category, p.stock, p.price]),
-    ]
-      .map(row => row.join(','))
-      .join('\n');
+      const prod = products.find(p => p.id === movement.productId);
+      if (prod) {
+        const newStock =
+          movement.type === 'entry'
+            ? prod.stock + movement.quantity
+            : prod.stock - movement.quantity;
+        await updateProduct(movement.productId, { stock: newStock });
+      }
+    } catch (e) {
+      console.error('Error movement', e);
+    }
+  };
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
+  // ================= REQUESTS =================
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'inventario.csv';
-    link.click();
-  };
+  const createRequest = async (request: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch(`${API_URL}/api/requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+      });
 
-  return (
-    <InventoryContext.Provider
-      value={{
-        products,
-        movements,
-        requests,
-        suppliers,
-        alerts,
-        addProduct,
-        updateProduct,
-        deleteProduct,
+      const data = await res.json();
+      setRequests(r => [...r, data]);
+    } catch (e) {
+      console.error('Error create request', e);
+    }
+  };
+
+  const updateRequest = (id: string, updates: Partial<Request>) => {
+    setRequests(r =>
+      r.map(x => (x.id === id ? { ...x, ...updates, updatedAt: new Date().toISOString() } : x))
+    );
+  };
+
+  // ================== SUPPLIERS ==================
+
+  const addSupplier = async (supplier: Omit<Supplier, 'id' | 'createdAt'>) => {
+    try {
+      const res = await fetch(`${API_URL}/api/suppliers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(supplier)
+      });
+      const data = await res.json();
+      setSuppliers(s => [...s, data]);
+    } catch (e) {
+      console.error('Error add supplier', e);
+    }
+  };
+
+  const updateSupplier = (id: string, updates: Partial<Supplier>) => {
+    setSuppliers(s => s.map(x => (x.id === id ? { ...x, ...updates } : x)));
+  };
+
+  const markAlertAsRead = (id: string) => {
+    setAlerts(a => a.map(x => (x.id === id ? { ...x, isRead: true } : x)));
+  };
+
+  // =================== UTILS ===================
+
+  const searchProducts = (query?: string) => {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) return products;
+
+    return products.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.sku || '').toLowerCase().includes(q) ||
+      (p.category || '').toLowerCase().includes(q)
+    );
+  };
+
+  const generateReport = (start: string, end: string) => {
+    const s = new Date(start);
+    const e = new Date(end);
+
+    return movements.filter(m => {
+      const d = new Date(m.createdAt);
+      return d >= s && d <= e;
+    });
+  };
+
+  const exportToExcel = () => {
+    const csv = [
+      ['SKU', 'Nombre', 'Categoría', 'Stock', 'Precio'],
+      ...products.map(p => [p.sku, p.name, p.category, p.stock, String(p.price)])
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'inventario.csv';
+    link.click();
+  };
+
+  return (
+    <InventoryContext.Provider
+      value={{
+        products,
+        movements,
+        requests,
+        suppliers,
+        alerts,
+        addProduct,
+        updateProduct,
+        deleteProduct,
         deleteSupplier,
-        addMovement,
-        createRequest,
-        updateRequest,
-        addSupplier,
-        updateSupplier,
-        markAlertAsRead,
-        searchProducts,
-        generateReport,
-        exportToExcel,
-        refreshAllData, 
-      }}
-    >
-      {children}
-    </InventoryContext.Provider>
-  );
+        addMovement,
+        createRequest,
+        updateRequest,
+        addSupplier,
+        updateSupplier,
+        markAlertAsRead,
+        searchProducts,
+        generateReport,
+        exportToExcel,
+        refreshAllData
+      }}
+    >
+      {children}
+    </InventoryContext.Provider>
+  );
 };
